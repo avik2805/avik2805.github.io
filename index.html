@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prestige Insulation — Free Bag Calculator</title>
+<meta name="description" content="Calculate exactly how many bags of insulation you need. Owens Corning & Rockwool, delivered in 1-2 days, pay on delivery.">
+<style>
+  :root{
+    --gold:#C9A227; --gold-light:#E6C55A; --black:#141414; --charcoal:#1f1f1f;
+    --cream:#F7F2E7; --cream-dark:#EDE4D3; --text:#2a2a2a;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{font-family:Georgia,'Times New Roman',serif; background:var(--cream); color:var(--text);}
+  header{background:var(--black); padding:28px 16px 22px; text-align:center; border-bottom:4px solid var(--gold);}
+  header h1{color:var(--gold); font-size:1.7rem; letter-spacing:2px; text-transform:uppercase;}
+  header p{color:var(--cream); font-size:.95rem; margin-top:6px; font-style:italic;}
+  .badges{display:flex; justify-content:center; gap:10px; flex-wrap:wrap; margin-top:12px;}
+  .badge{background:var(--charcoal); color:var(--gold-light); border:1px solid var(--gold); border-radius:20px; padding:4px 12px; font-size:.78rem; font-family:Arial,sans-serif;}
+  main{max-width:520px; margin:0 auto; padding:20px 16px 40px;}
+  .card{background:#fff; border:1px solid var(--cream-dark); border-radius:12px; padding:20px; box-shadow:0 2px 10px rgba(0,0,0,.06); margin-top:18px;}
+  label{display:block; font-family:Arial,sans-serif; font-weight:bold; font-size:.85rem; margin:14px 0 6px; color:var(--black); text-transform:uppercase; letter-spacing:.5px;}
+  select,input[type=number]{width:100%; padding:12px; font-size:1.05rem; border:2px solid var(--cream-dark); border-radius:8px; background:var(--cream); font-family:Arial,sans-serif;}
+  select:focus,input:focus{outline:none; border-color:var(--gold);}
+  button.calc{width:100%; margin-top:18px; padding:15px; font-size:1.1rem; font-weight:bold; letter-spacing:1px; color:var(--black); background:linear-gradient(180deg,var(--gold-light),var(--gold)); border:none; border-radius:8px; cursor:pointer; font-family:Arial,sans-serif; text-transform:uppercase;}
+  button.calc:active{transform:scale(.98);}
+  #result{display:none;}
+  .big{font-size:2.2rem; color:var(--black); font-weight:bold; text-align:center; margin:8px 0 2px;}
+  .big span{color:var(--gold); }
+  .sub{text-align:center; font-family:Arial,sans-serif; font-size:.95rem; color:#555;}
+  .price-line{display:flex; justify-content:space-between; font-family:Arial,sans-serif; font-size:.98rem; padding:8px 4px; border-bottom:1px dashed var(--cream-dark);}
+  .price-line.total{font-weight:bold; font-size:1.15rem; border-bottom:none; color:var(--black);}
+  .cta{display:block; text-align:center; margin-top:12px; padding:15px; border-radius:8px; font-family:Arial,sans-serif; font-weight:bold; font-size:1.05rem; text-decoration:none;}
+  .cta.text{background:var(--black); color:var(--gold);}
+  .cta.call{background:transparent; color:var(--black); border:2px solid var(--black);}
+  .trust{margin-top:16px; font-size:.85rem; font-family:Arial,sans-serif; color:#666; text-align:center; line-height:1.5;}
+  footer{text-align:center; padding:24px 16px; font-family:Arial,sans-serif; font-size:.8rem; color:#777;}
+  .note{font-size:.78rem; color:#888; font-family:Arial,sans-serif; margin-top:10px; line-height:1.4;}
+</style>
+</head>
+<body>
+<header>
+  <h1>Prestige Insulation</h1>
+  <p>Exact bag counts. Delivered in 1&ndash;2 days. Pay on delivery.</p>
+  <div class="badges"><span class="badge">Owens Corning</span><span class="badge">Rockwool</span><span class="badge">COD &mdash; No Deposit</span><span class="badge">Jobsite Delivery</span></div>
+</header>
+<main>
+  <div class="card">
+    <label for="area">What are you insulating?</label>
+    <select id="area" onchange="fillProducts()">
+      <option value="attic">Attic / Ceiling</option>
+      <option value="wall4">Walls — 2x4 framing</option>
+      <option value="wall6">Walls — 2x6 framing</option>
+      <option value="floor">Floor / Crawl Space</option>
+    </select>
+
+    <label for="product">Product</label>
+    <select id="product"></select>
+
+    <label for="sqft">Square footage to cover</label>
+    <input type="number" id="sqft" inputmode="decimal" placeholder="e.g. 1200" min="1">
+
+    <label for="waste">Cuts &amp; waste allowance</label>
+    <select id="waste">
+      <option value="0.05">5% — open, simple layout</option>
+      <option value="0.10" selected>10% — typical (recommended)</option>
+      <option value="0.15">15% — lots of corners / obstacles</option>
+    </select>
+
+    <label for="taxstate">Delivery state (for sales tax estimate)</label>
+    <select id="taxstate"></select>
+
+    <button class="calc" onclick="calc()">Get My Bag Count &amp; Price</button>
+    <p class="note">Tip: for walls, use wall area (length &times; height), not floor area. Not sure? Text us the room dimensions — we'll figure it for you free.</p>
+  </div>
+
+  <div class="card" id="result">
+    <p class="sub">You need</p>
+    <p class="big"><span id="bags"></span> bags</p>
+    <p class="sub" id="prodname"></p>
+    <div style="margin-top:14px">
+      <div class="price-line"><span id="mathline"></span><span id="subtotal"></span></div>
+      <div class="price-line"><span id="taxlabel">Sales tax (est.)</span><span id="taxamt"></span></div>
+      <div class="price-line"><span>Delivery (1&ndash;2 days)</span><span>Quoted by zip</span></div>
+      <div class="price-line total"><span>Estimated total</span><span id="total"></span></div>
+    </div>
+    <a class="cta text" id="smslink" href="#">&#128172; Text Me This Quote</a>
+    <a class="cta call" href="tel:+19296097614">&#128222; Or Call: (929) 609-7614</a>
+    <p class="trust">Brand-new bags, original packaging &bull; You inspect before you pay &bull; Zelle or Venmo on delivery</p>
+  </div>
+</main>
+<footer>
+  <p style="font-size:.95rem; color:var(--black); font-family:Georgia,serif; margin-bottom:8px;">Don't see the insulation you need? <a href="sms:+19296097614" style="color:var(--gold); font-weight:bold;">Reach out</a> &mdash; we can source any additional type of insulation.</p>
+  Prestige Insulation &bull; Bag counts are estimates based on manufacturer coverage specs; final count confirmed with your quote.
+</footer>
+
+<script>
+// coverage = manufacturer sq ft per bag (15" width products). VERIFY against supplier spec sheet before launch.
+const PRODUCTS = {
+  oc13:  {name:'Owens Corning R-13',            price:50, coverage:106.56, areas:['wall4','floor']},
+  oc15:  {name:'Owens Corning R-15',            price:50, coverage:67.81,  areas:['wall4']},
+  oc19:  {name:'Owens Corning R-19',            price:50, coverage:77.50,  areas:['wall6','floor']},
+  oc21:  {name:'Owens Corning R-21',            price:55, coverage:67.80,  areas:['wall6']},
+  oc30:  {name:'Owens Corning R-30',            price:55, coverage:58.67,  areas:['attic','floor']},
+  oc38:  {name:'Owens Corning R-38',            price:55, coverage:42.67,  areas:['attic']},
+  oc49:  {name:'Owens Corning R-49',            price:55, coverage:34.70,  areas:['attic']},
+  rw13:  {name:'Rockwool ComfortBatt R-13',     price:65, coverage:59.70,  areas:['wall4']},
+  rw15:  {name:'Rockwool ComfortBatt R-15',     price:73, coverage:59.70,  areas:['wall4']},
+  rw23:  {name:'Rockwool ComfortBatt R-23',     price:73, coverage:39.80,  areas:['wall6','floor']},
+  rw30:  {name:'Rockwool ComfortBatt R-30',     price:73, coverage:29.90,  areas:['attic','floor']},
+};
+
+// State base sales tax rates (%). Local surtaxes vary — shown as an estimate; exact tax on final quote.
+const TAX = {AL:4,AZ:5.6,AR:6.5,CA:7.25,CO:2.9,CT:6.35,DE:0,FL:6,GA:4,ID:6,IL:6.25,IN:7,IA:6,KS:6.5,
+KY:6,LA:5,MD:6,MA:6.25,MI:6,MN:6.875,MS:7,MO:4.225,MT:0,NE:5.5,NV:6.85,NH:0,NJ:6.625,NM:4.875,
+NC:4.75,ND:5,OH:5.75,OK:4.5,OR:0,PA:6,RI:7,SC:6,SD:4.2,TN:7,TX:6.25,UT:6.1,VT:6,VA:5.3,WA:6.5,
+WV:6,WI:5,WY:4,ME:5.5,NY:4};
+
+function fillStates(){
+  const sel = document.getElementById('taxstate');
+  sel.innerHTML = '<option value="">Select state…</option>';
+  Object.keys(TAX).sort().forEach(st => {
+    const o = document.createElement('option');
+    o.value = st;
+    o.textContent = st + ' (' + TAX[st] + '%)';
+    sel.appendChild(o);
+  });
+}
+
+function fillProducts(){
+  const area = document.getElementById('area').value;
+  const sel = document.getElementById('product');
+  sel.innerHTML = '';
+  for (const [id,p] of Object.entries(PRODUCTS)){
+    if (p.areas.includes(area)){
+      const o = document.createElement('option');
+      o.value = id;
+      o.textContent = p.name + ' — $' + p.price + '/bag';
+      sel.appendChild(o);
+    }
+  }
+}
+
+function calc(){
+  const sqft = parseFloat(document.getElementById('sqft').value);
+  if (!sqft || sqft <= 0){ alert('Enter your square footage first.'); return; }
+  const p = PRODUCTS[document.getElementById('product').value];
+  const waste = parseFloat(document.getElementById('waste').value);
+  const bags = Math.ceil(sqft * (1 + waste) / p.coverage);
+  const subtotal = bags * p.price;
+  const st = document.getElementById('taxstate').value;
+  const rate = st ? TAX[st] : 0;
+  const tax = Math.round(subtotal * rate) / 100;
+  const total = subtotal + tax;
+
+  document.getElementById('bags').textContent = bags;
+  document.getElementById('prodname').textContent = 'of ' + p.name + ' (' + p.coverage + ' sq ft per bag, includes ' + Math.round(waste*100) + '% waste allowance)';
+  document.getElementById('mathline').textContent = bags + ' bags × $' + p.price;
+  document.getElementById('subtotal').textContent = '$' + subtotal.toLocaleString();
+  document.getElementById('taxlabel').textContent = st ? 'Sales tax est. — ' + st + ' (' + rate + '%)' : 'Sales tax (select state above)';
+  document.getElementById('taxamt').textContent = st ? '$' + tax.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) : '—';
+  document.getElementById('total').textContent = '$' + total.toLocaleString(undefined,{maximumFractionDigits:2}) + ' + delivery';
+
+  const msg = 'Hi Prestige Insulation — I used your calculator. I need ' + bags + ' bags of ' + p.name +
+              ' (' + sqft + ' sq ft). Quote: $' + subtotal.toLocaleString() + (st ? ' + ~$' + tax.toFixed(2) + ' tax (' + st + ')' : '') +
+              ' + delivery. My zip code is: ';
+  document.getElementById('smslink').href = 'sms:+19296097614?body=' + encodeURIComponent(msg);
+
+  const r = document.getElementById('result');
+  r.style.display = 'block';
+  r.scrollIntoView({behavior:'smooth'});
+}
+fillProducts();
+fillStates();
+</script>
+</body>
+</html>
